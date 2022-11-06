@@ -27,7 +27,7 @@ jobs:
       - name: execute py script # run main.py
         env:
           Bearer_Token: ${{secrets.Bearer_Token}}
-        run: timeout 21480 python main.py || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+        run: timeout 300m python main.py || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
         # # The following works too, but it is not ideal since the error could be due to code issues and not timeout
         # timeout-minutes: 3
         # continue-on-error: true
@@ -35,6 +35,7 @@ jobs:
           
       - name: commit files
         run: |
+          git pull
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add -A
