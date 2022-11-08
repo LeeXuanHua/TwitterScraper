@@ -1,5 +1,6 @@
 import os
 import asyncio
+import httpx
 import logging
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
@@ -44,8 +45,19 @@ if __name__ == "__main__":
         logger_file_handler.setFormatter(formatter)
         logger.addHandler(logger_file_handler)
 
-        twitter_stream = TwitterStream(bearer_token, config, logger)
-        asyncio.run(twitter_stream.main())
+        while True:
+            try:
+                twitter_stream = TwitterStream(bearer_token, config, logger)
+                asyncio.run(twitter_stream.main())
+                break
+
+            except (httpx.ProtocolError, httpx.HTTPStatusError) as e:
+                logger.error(f"Stream Tweet Failed - {e}")
+                logger.info(f"Retrying Stream Tweet")
+
+            except Exception as e:
+                logger.error(f"Stream Tweet Failed - {e}")
+                break
         
     elif config["API"]["user_tweet"] == "True":
         logger_file_handler = RotatingFileHandler(
@@ -58,5 +70,16 @@ if __name__ == "__main__":
         logger_file_handler.setFormatter(formatter)
         logger.addHandler(logger_file_handler)
 
-        twitter_user = TwitterUser(bearer_token, config, logger)
-        asyncio.run(twitter_user.main())
+        while True:
+            try:
+                twitter_user = TwitterUser(bearer_token, config, logger)
+                asyncio.run(twitter_user.main())
+                break
+
+            except (httpx.ProtocolError, httpx.HTTPStatusError) as e:
+                logger.error(f"User Tweet Failed - {e}")
+                logger.info(f"Retrying User Tweet")
+
+            except Exception as e:
+                logger.error(f"User Tweet Failed - {e}")
+                break

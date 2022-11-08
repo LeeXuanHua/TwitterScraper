@@ -65,7 +65,7 @@ class TwitterUser:
 
         response = await session.request("GET", url, auth=self.bearer_oauth, params=params)
         if response.status_code != 200:
-            raise Exception(f"Request returned an error: {response.status_code} {response.text}")
+            raise httpx.HTTPStatusError(f"Request returned an error: {response.status_code} {response.text}")
 
         await session.aclose()
         return response.json()
@@ -119,5 +119,16 @@ if __name__ == "__main__":
     logger_file_handler.setFormatter(formatter)
     logger.addHandler(logger_file_handler)
 
-    twitter_user = TwitterUser(bearer_token, config, logger)
-    asyncio.run(twitter_user.main())
+    while True:
+        try:
+            twitter_user = TwitterUser(bearer_token, config, logger)
+            asyncio.run(twitter_user.main())
+            break
+
+        except (httpx.ProtocolError, httpx.HTTPStatusError) as e:
+            logger.error(f"User Tweet Failed - {e}")
+            logger.info(f"Retrying User Tweet")
+
+        except Exception as e:
+            logger.error(f"User Tweet Failed - {e}")
+            break

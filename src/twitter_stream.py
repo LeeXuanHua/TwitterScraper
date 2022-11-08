@@ -40,7 +40,7 @@ class TwitterStream:
         await session.aclose()
 
         if response.status_code != 200:
-            raise Exception(f"Cannot get rules (HTTP {response.status_code}): {response.text}")
+            raise httpx.HTTPStatusError(f"Cannot get rules (HTTP {response.status_code}): {response.text}")
         self.logger.info(f"Get Rules: {json.dumps(response.json(), sort_keys=True)}")
         return response.json()
 
@@ -57,7 +57,7 @@ class TwitterStream:
         await session.aclose()
 
         if response.status_code != 200:
-            raise Exception(f"Cannot delete rules (HTTP {response.status_code}): {response.text}")
+            raise httpx.HTTPStatusError(f"Cannot delete rules (HTTP {response.status_code}): {response.text}")
         self.logger.info(f"Delete All Rules: {json.dumps(response.json(), sort_keys=True)}")
 
 
@@ -74,7 +74,7 @@ class TwitterStream:
         await session.aclose()
 
         if response.status_code != 201:
-            raise Exception(f"Cannot add rules (HTTP {response.status_code}): {response.text}")
+            raise httpx.HTTPStatusError(f"Cannot add rules (HTTP {response.status_code}): {response.text}")
         self.logger.info(f"Set Rules: {json.dumps(response.json(), sort_keys=True)}")
 
 
@@ -85,8 +85,9 @@ class TwitterStream:
             # If rate limit has been reached, wait until reset time
             if response.status_code == 429:
                 await asyncio.sleep(int(response.headers["x-rate-limit-reset"]) - time.time())
+                raise httpx.HTTPStatusError(f"Cannot get stream (HTTP {response.status_code}): {response.aiter_raw()}")
             elif response.status_code != 200:
-                raise Exception(f"Cannot get stream (HTTP {response.status_code}): {response.aiter_raw()}")
+                raise httpx.HTTPStatusError(f"Cannot get stream (HTTP {response.status_code}): {response.aiter_raw()}")
 
             async for response_line in response.aiter_text():
                 if response_line and response_line != "\r\n" and response_line != "\n":
@@ -120,5 +121,16 @@ if __name__ == "__main__":
     logger_file_handler.setFormatter(formatter)
     logger.addHandler(logger_file_handler)
 
-    twitter_stream = TwitterStream(bearer_token, config, logger)
-    asyncio.run(twitter_stream.main())
+    while True:
+        try:
+            twitter_stream = TwitterStream(bearer_token, config, logger)
+            asyncio.run(twitter_stream.main())
+            break
+
+        except (httpx.ProtocolError, httpx.HTTPStatusError) as e:
+            logger.error(f"Stream Tweet Failed - {e}")
+            logger.info(f"Retrying Stream Tweet")
+
+        except Exception as e:
+            logger.error(f"Stream Tweet Failed - {e}")
+            break
