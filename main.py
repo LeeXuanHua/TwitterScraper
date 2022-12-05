@@ -1,17 +1,18 @@
 import os
-import asyncio
-import httpx
 import logging
+import threading
+import logging.config
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
+from typing import List
 
-from src.RawConfigParser import RawConfigParser
+from src.utils import RawConfigParser
 from src.twitter_stream import TwitterStream
 from src.twitter_user import TwitterUser
 
 '''
 Manages which service to run. Currently it has to be either stream data or user data
-# TODO: Add support for both concurrently
+# TODO: Add support for both concurrently (Done 3rd Dec 2022)
 # TODO: Store in database instead of log files
 # TODO: Wrap as a backend using FastAPI
 # TODO: React webapp for visualizing data
@@ -20,9 +21,22 @@ Manages which service to run. Currently it has to be either stream data or user 
 
 if __name__ == "__main__":
     # Initialize logging, config and environment variables
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.INFO)
+    # Note that logging dictConfig can also be used to configure logging from a dict
     formatter = logging.Formatter('[%(asctime)s]:%(levelname)5s:%(message)s')
+
+    logger_file_handler = RotatingFileHandler(
+        "main.log",
+        mode='a',
+        maxBytes=1024 * 1024,
+        backupCount=100,
+        encoding="utf8",
+    )
+    logger_file_handler.setLevel(logging.WARNING)   # To handle original & (mainly) propagated logs
+    logger_file_handler.setFormatter(formatter)
+
+    main_logger = logging.getLogger(__name__)
+    main_logger.setLevel(logging.WARNING)   # To handle original logs
+    main_logger.addHandler(logger_file_handler)
     
     config = RawConfigParser()
     config.read("config.ini")
@@ -31,55 +45,38 @@ if __name__ == "__main__":
     try:
         bearer_token = os.environ["Bearer_Token"]
     except KeyError:
-        logging.critical("Bearer Token not found in environment!")
-
-    # Initialize services
+        main_logger.critical("Bearer Token not found in environment!")  # Avoid using logging (which uses root log)
+    
+    # Initialize services per thread
+    thread_list: List[threading.Thread] = []
+    
+    if config["API"]["user_tweet"] == "True":
+        thread_list.append(threading.Thread(
+            target=TwitterUser.create_thread, 
+            kwargs={
+                "bearer_token": bearer_token, 
+                "config": config, 
+                "logger": main_logger, 
+                "formatter": formatter
+                }))
+    
     if config["API"]["stream_tweet"] == "True":
-        logger_file_handler = RotatingFileHandler(
-            config["DEFAULT"]["stream_tweet_log_file"],
-            mode='a',
-            maxBytes=1024 * 1024,
-            backupCount=100,
-            encoding="utf8",
-        )
-        logger_file_handler.setFormatter(formatter)
-        logger.addHandler(logger_file_handler)
-
-        while True:
-            try:
-                twitter_stream = TwitterStream(bearer_token, config, logger)
-                asyncio.run(twitter_stream.main())
-                break
-
-            except (httpx.ProtocolError, httpx.HTTPStatusError) as e:
-                logger.error(f"Stream Tweet Failed - {e}")
-                logger.info(f"Retrying Stream Tweet")
-
-            except Exception as e:
-                logger.error(f"Stream Tweet Failed - {e}")
-                break
+        thread_list.append(threading.Thread(
+            target=TwitterStream.create_thread, 
+            kwargs={
+                "bearer_token": bearer_token, 
+                "config": config, 
+                "logger": main_logger, 
+                "formatter": formatter
+                }))
         
-    elif config["API"]["user_tweet"] == "True":
-        logger_file_handler = RotatingFileHandler(
-            config["DEFAULT"]["user_tweet_log_file"],
-            mode='a',
-            maxBytes=1024 * 1024,
-            backupCount=100,
-            encoding="utf8",
-        )
-        logger_file_handler.setFormatter(formatter)
-        logger.addHandler(logger_file_handler)
+    # Start services
+    for thread in thread_list:
+        thread.start()
+    
+    # Wait for services to finish
+    for thread in thread_list:
+        thread.join()
 
-        while True:
-            try:
-                twitter_user = TwitterUser(bearer_token, config, logger)
-                asyncio.run(twitter_user.main())
-                break
-
-            except (httpx.ProtocolError, httpx.HTTPStatusError) as e:
-                logger.error(f"User Tweet Failed - {e}")
-                logger.info(f"Retrying User Tweet")
-
-            except Exception as e:
-                logger.error(f"User Tweet Failed - {e}")
-                break
+    # Close logging
+    logging.shutdown()

@@ -5,7 +5,8 @@ import json
 import logging
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
-from .RawConfigParser import RawConfigParser
+
+from .utils import log_wrapper, RawConfigParser
 
 '''
 Currently aims to retrieve the tweets of the users in the usernames.txt file.
@@ -16,13 +17,65 @@ As of now, it plans to retrieve elon musk, donald trump
 # Refer to: https://developer.twitter.com/en/docs/twitter-api/pagination
 '''
 
+
+
 class TwitterUser:
+    # Define thread function
+    @staticmethod
+    @log_wrapper
+    def create_thread(bearer_token: str, config: RawConfigParser, logger: logging.Logger, formatter: logging.Formatter) -> None:
+        '''
+        Creates a thread to:
+        1. Create a logger object
+        2. Initialise a TwitterUser class
+        3. Run the main function of the class asynchronously
+        4. Handles all errors from this object
+        '''
+        logger_file_handler = RotatingFileHandler(
+            config["DEFAULT"]["user_tweet_log_file"],
+            mode='a',
+            maxBytes=1024 * 1024,
+            backupCount=100,
+            encoding="utf8",
+        )
+        logger_file_handler.setLevel(logging.INFO)
+        logger_file_handler.setFormatter(formatter)
+
+        user_logger = logging.getLogger(f"{__name__}.user_tweets")  # Initialise Parent-Child logger relationship
+        user_logger.propagate = True  # By default, propagate is True
+        user_logger.setLevel(logging.INFO)
+        user_logger.addHandler(logger_file_handler)
+
+        while True:
+            try:
+                twitter_user = TwitterUser(bearer_token, config, user_logger)
+                asyncio.run(twitter_user.main())
+                break
+            
+            except httpx.RequestError as e:   # Handle request errors
+                logger.error(f"Stream Tweet Failed - {e}")
+                logger.error(f"Retrying Stream Tweet")
+            
+            except httpx.HTTPStatusError as e:   # Handle response errors
+                logger.error(f"User Tweet Failed - {e}")
+                logger.error(f"Retrying User Tweet")
+
+            except Exception as e:
+                logger.error(f"User Tweet Failed - {e}")
+                break
+
     def __init__(self, bearer_token: str, config: RawConfigParser, logger: logging.Logger):
         self.bearer_token = bearer_token
         self.config = config
         self.logger = logger
 
     async def main(self) -> None:
+        '''
+        Performs the following in sequence:
+        1. Retrieve the IDs for specified usernames
+        2. Separate the IDs into successful and errorneous
+        3. For each successful ID, retrieve top 5 tweets
+        '''
         # Retrieve the user IDs
         users_url = self.create_users_url()
         users_params = self.get_users_params()
@@ -30,11 +83,11 @@ class TwitterUser:
 
         # Separate successful and errorneous user IDs 
         users_id = {}
-        for item in users_response["data"]:
+        for item in users_response.get("data", []):
             users_id[item["id"]] = item
 
         error_data = {}
-        for item in users_response["errors"]:
+        for item in users_response.get("errors", []):
             error_data[item.get("resource_id", "Unknown")] = item
         
         self.logger.info(f"users_id = {json.dumps(users_id, sort_keys=True)}")
@@ -65,7 +118,9 @@ class TwitterUser:
 
         response = await session.request("GET", url, auth=self.bearer_oauth, params=params)
         if response.status_code != 200:
-            raise httpx.HTTPStatusError(f"Request returned an error: {response.status_code} {response.text}")
+            raise httpx.HTTPStatusError(f"Request returned an error: {response.status_code} {response.text}",
+                request=response.request,
+                response=response)
 
         await session.aclose()
         return response.json()
