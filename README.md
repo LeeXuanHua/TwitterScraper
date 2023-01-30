@@ -33,6 +33,95 @@ This will be done incrementally, in the following order:
 |<b>Output</b>      | data/twitter_stream_data.log |
 <b>How It Works</b>| Based on the rules and query fields defined, establish a real-time stream to listen to new Twitter posts fulfilling the rules |
 
+
+### CLI
+- Created using <i>[argpase](https://realpython.com/command-line-interfaces-python-argparse/)</i> library
+- Contains main parser to execute all actions (both usertweet and streamtweet)
+- Contains 2 subparsers {usertweet, streamtweet} to separately execute each action
+```
+$ python cli/twiquery_cli.py --help
+usage: twiquery [options]
+
+Customisable queries to Twitter API by username, rules, fields for User Tweets and/or Stream Tweets
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+
+Execute All Actions:
+  -u x [x ...], --user x [x ...]
+                        Query the tweets for these user(s)
+  -c x, --count x       Number of tweets to query for each username
+  -r rule, --rule rule
+  -t XmYs, --timeout XmYs
+                        Duration to stream tweets for, in the format of X minutes and Y seconds. Default -1 for indefinite
+
+Execute Single Actions:
+  Execute a single action with the following subcommands
+
+  {usertweet,streamtweet}
+    usertweet           customise with username [-u], tweet count [-c], and many more
+    streamtweet         customise with rules [-r], timeout duration [-t] and many more
+
+This executes both user tweets and stream tweets. To execute only one, please use the subparsers {usertweet, streamtweet}
+```
+```
+$ python cli/twiquery_cli.py usertweet --help
+usage: twiquery [options] usertweet [-h] [-u x [x ...]] [-c x] [--created_at] [--description] [--entities] [--id] [--location] [--name] [--pinned_tweet_id] [--profile_image_url] [--protected] [--public_metrics] [--url] [--username] [--verified] [--withheld]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -u x [x ...], --user x [x ...]
+                        Query the tweets for these user(s)
+  -c x, --count x       Number of tweets to query for each username
+  --created_at          Remove the created_at field
+  --description         Remove the description field
+  --entities            Remove the entities field
+  --id                  Remove the id field
+  --location            Remove the location field
+  --name                Remove the name field
+  --pinned_tweet_id     Remove the pinned_tweet_id field
+  --profile_image_url   Remove the profile_image_url field
+  --protected           Remove the protected field
+  --public_metrics      Remove the public_metrics field
+  --url                 Remove the url field
+  --username            Remove the username field
+  --verified            Remove the verified field
+  --withheld            Remove the withheld field
+```
+
+```
+$ python cli/twiquery_cli.py streamtweet --help
+usage: twiquery [options] streamtweet [-h] [-r rule] [-t XmYs] [--attachments] [--author_id] [--context_annotations] [--conversation_id] [--created_at] [--entities] [--geo] [--id] [--in_reply_to_user_id] [--lang] [--non_public_metrics] [--organic_metrics] [--possibly_sensitive] [--promoted_metrics] [--public_metrics] [--referenced_tweets] [--source] [--text] [--withheld]    
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -r rule, --rule rule
+  -t XmYs, --timeout XmYs
+                        Duration to stream tweets for, in the format of X minutes and Y seconds. Default -1 for indefinite
+  --attachments         Remove the attachments field
+  --author_id           Remove the author_id field
+  --context_annotations
+                        Remove the context_annotations field
+  --conversation_id     Remove the conversation_id field
+  --created_at          Remove the created_at field
+  --entities            Remove the entities field
+  --geo                 Remove the geo field
+  --id                  Remove the id field
+  --in_reply_to_user_id
+                        Remove the in_reply_to_user_id field
+  --lang                Remove the lang field
+  --non_public_metrics  Include the non_public_metrics field
+  --organic_metrics     Include the organic_metrics field
+  --possibly_sensitive  Remove the possibly_sensitive field
+  --promoted_metrics    Include the promoted_metrics field
+  --public_metrics      Remove the public_metrics field
+  --referenced_tweets   Remove the referenced_tweets field
+  --source              Remove the source field
+  --text                Remove the text field
+  --withheld            Remove the withheld field
+```
+
 ## Design Considerations & Implementations
 
 ### Github Actions & Runners
