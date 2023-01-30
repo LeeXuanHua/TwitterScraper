@@ -2,7 +2,6 @@
 
 <b>Work in progress</b>
 
-
 ## Overview
 This project aims to identify the relationship between users (Elon Musk & Donald Trump) as well as compile relevant posts (related to the 2022 Twitter mass layoff). We identify these posts through hashtags #OneTeam and #LoveWhereYouWorked.
 
@@ -80,7 +79,11 @@ This will be done incrementally, in the following order:
 
 ## Research
 ### Web Servers vs Web Frameworks
-- Web Servers decouples the server implementation from the application framework. This allows for an ecosystem of interoperating webservers and application frameworks.
+- Web Servers:
+    - Decouples the server implementation from the application framework. This allows for an ecosystem of interoperating webservers and application frameworks
+    - Pays attention to connection and resource management to provide a robust server implementation
+    - Ensures graceful behavior to either server or client errors, and resilience to poor client behavior or denial of service attacks
+    - E.g. HTTP Headers, Flow Control, Request and Response bodies, Timeouts, Resource Limits, Server Errors, Graceful Process Shutdown, HTTP Pipelining
 - Comparison of different frameworks & servers: https://fastapi.tiangolo.com/alternatives/
     - Starlette is used for Python async server (ASGI standards)
         - FastAPI is "Starlette on steroids" for web framework and uses Uvicorn / Gunicorn for server
