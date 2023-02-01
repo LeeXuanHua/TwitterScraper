@@ -2,6 +2,21 @@
 
 <b>Work in progress</b>
 
+![GitHub Contributors](https://img.shields.io/github/contributors/LeeXuanHua/TwitterScraper)
+![GitHub Repo Size](https://img.shields.io/github/repo-size/LeeXuanHua/TwitterScraper)
+![Maintenance Status](https://img.shields.io/badge/maintenance-as--is-yellow.svg)
+[![License](https://img.shields.io/github/license/LeeXuanHua/TwitterScraper)](https://github.com/LeeXuanHua/TwitterScraper/blob/main/LICENSE)
+
+![GitHub Activity](https://img.shields.io/github/commit-activity/m/LeeXuanHua/TwitterScraper)
+![GitHub Last Commit](https://img.shields.io/github/last-commit/LeeXuanHua/TwitterScraper)
+[![GitHub Issues](https://img.shields.io/github/issues/LeeXuanHua/TwitterScraper)](https://github.com/LeeXuanHua/TwitterScraper/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/LeeXuanHua/TwitterScraper)](https://github.com/LeeXuanHua/TwitterScraper/pulls)
+
+[![Twitter Streaming](https://github.com/LeeXuanHua/TwitterScraper/actions/workflows/actions.yml/badge.svg?branch=main&event=)](https://github.com/LeeXuanHua/TwitterScraper/actions)
+<!-- ![Build Status](https://img.shields.io/circleci/project/github/LeeXuanHua/TwitterScraper/main)
+![Daily Tests](https://img.shields.io/circleci/project/github/LeeXuanHua/daily-tests?label=service%20tests)
+![Coverage](https://img.shields.io/coveralls/github/LeeXuanHua/TwitterScraper) -->
+
 ## Overview
 This project aims to identify the relationship between users (Elon Musk & Donald Trump) as well as compile relevant posts (related to the 2022 Twitter mass layoff). We identify these posts through hashtags #OneTeam and #LoveWhereYouWorked.
 
