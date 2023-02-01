@@ -193,6 +193,25 @@ Step 4: Run `python main.py` <br>
 - Though not efficient, I have tested multi-threading by adding on top of the functionalities
     - For learning, this approach will be used in developing subsequent functionalities (such as FastAPI and web app) as compared to pure async
 
+### CLI
+- For our CLI stored in the `/cli` folder, the primary entrypoint is via main.py
+- Provided generic options to execute both User Tweets & Stream Tweets services
+- Provided 2 subparsers with more options for User Tweets and Stream Tweets each
+    - subparsers work similar to `git init`, `git commit`, `git rebase`, etc 
+- Included update-settings to set custom options in config file without executing the services
+    - Typically used together with `--use-previous` option
+- Included use-previous to use previously-set custom options in config file
+    - Typically used together with `--update-settings` option
+    - `--use-previous` is necessary even if we use defaults for CLI options
+    - A use case for this is when we wish to execute all services concurrently, with custom fields set
+- When designing a CLI application, it is important to understand:
+    1. What customisable features are required of the application (e.g. usernames, stream filter rules)
+    2. What added/convenience features can be further provided (e.g. --use-previous)
+    3. What are the default values for the options (e.g. lists of strings, int values)
+    4. What are the input type (e.g. str, int)
+    5. How many input to expect for each option
+    6. What are the appropriate metavar and help descriptions
+- Note that when reading from config.ini, we do not require `ast.literal_eval()` as the format can be identified and is unchanged
 
 ## Research
 ### Web Servers vs Web Frameworks
