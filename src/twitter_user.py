@@ -9,14 +9,14 @@ from dotenv import load_dotenv
 from .utils import log_wrapper, RawConfigParser
 
 '''
-Currently aims to retrieve the tweets of the users in the usernames.txt file.
-As of now, it plans to retrieve elon musk, donald trump
+Currently aims to retrieve the tweets of Twitter users specified in config.ini file.
+By default, entry via CLI will retrieve elon musk, and donald trump
+# TODO: Add support for user tweet count (currently default to 5)
 # TODO: Remove the nextToken from data log, as it is sensitive
 # TODO: Listen to user tweets realtime
 # TODO: (Tentative, may not implement if realtime preferred) Specify the rate limit for the API / Use pagination
 # Refer to: https://developer.twitter.com/en/docs/twitter-api/pagination
 '''
-
 
 
 class TwitterUser:

@@ -10,9 +10,12 @@ from dotenv import load_dotenv
 from .utils import log_wrapper, RawConfigParser
 
 '''
-Currently aims to retrieve realtime streams of tweets related to twitter's recent layoffs.
+Currently aims to retrieve realtime streams of tweets filtered according to rules specified in config.ini file.
+By default, entry via CLI will listen for tweets related to Twitter's layoffs in 2022.
 # TODO: Add support for other topics
+# TODO: Add support for timeout duration
 '''
+
 
 class TwitterStream:
     # Define thread function
