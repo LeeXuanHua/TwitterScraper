@@ -27,7 +27,7 @@ class TwitterStream:
         4. Handles all errors from this object
         '''
         logger_file_handler = RotatingFileHandler(
-            config["DEFAULT"]["stream_tweet_log_file"],
+            config["FILEPATHS"]["stream_tweet_log_file"],
             mode='a',
             maxBytes=1024 * 1024,
             backupCount=100,
@@ -124,8 +124,13 @@ class TwitterStream:
     async def set_rules(self, delete) -> dict:
         rules = []
 
-        for option in self.config.options("STREAMRULE", no_defaults=True):
-            rules.append({"value": self.config.get('STREAMRULE', option)})
+        # Deprecated - Rules are no longer stored under STREAMRULE section
+        # for option in self.config.options("STREAMRULE", no_defaults=True):
+        #     rules.append({"value": self.config.get('STREAMRULE', option)})
+        # config_rule = ast.literal_eval(self.config["STREAMTWEET"]["rule"])    # do not require ast.literal since data are stored in list format already
+        # config_tag = ast.literal_eval(self.config["STREAMTWEET"]["tag"])      # do not require ast.literal since data are stored in list format already
+        for rule, tag in zip(self.config["STREAMTWEET"]["rule"], self.config["STREAMTWEET"]["tag"]):
+            rules.append({"value": rule, "tag": tag})
 
         payload = {"add": rules}
 
@@ -173,7 +178,7 @@ if __name__ == "__main__":
 
     # Initialize services
     logger_file_handler = RotatingFileHandler(
-        config["DEFAULT"]["stream_tweet_log_file"],
+        config["FILEPATHS"]["stream_tweet_log_file"],
         mode='a',
         maxBytes=1024 * 1024,
         backupCount=100,

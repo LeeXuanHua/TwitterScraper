@@ -21,9 +21,9 @@ This will be done incrementally, in the following order:
 ### User Tweets
 |                   |   |
 |-------------------|---|
-|<b>Input</b>       | usernames.txt & config.ini|
+|<b>Input</b>       | config.ini |
 |<b>Output</b>      | data/twitter_user_data.log |
-|<b>How It Works</b>|  Based on the usernames (newline separated) and query fields (config.ini) specified in input , query Twitter for the account metadata and 5 recent tweets | 
+|<b>How It Works</b>|  Based on the usernames and query fields defined, query Twitter for the user metadata and 5 recent tweets | 
    
 
 ### Stream Tweets
@@ -52,9 +52,14 @@ Execute All Actions:
   -u x [x ...], --user x [x ...]
                         Query the tweets for these user(s)
   -c x, --count x       Number of tweets to query for each username
-  -r rule, --rule rule
-  -t XmYs, --timeout XmYs
+  -r rule [rule ...], --rule rule [rule ...]
+                        Rules to filter the Tweet stream
+  -t rule [rule ...], --tag rule [rule ...]
+                        Tags mapping to the filter rules defined in the --rule option
+  -d XmYs, --duration XmYs
                         Duration to stream tweets for, in the format of X minutes and Y seconds. Default -1 for indefinite
+  --update-settings     Set custom options in config file without executing service
+  --use-previous        Use previously-set custom options in config file
 
 Execute Single Actions:
   Execute a single action with the following subcommands
@@ -67,60 +72,83 @@ This executes both user tweets and stream tweets. To execute only one, please us
 ```
 ```
 $ python cli/twiquery_cli.py usertweet --help
-usage: twiquery [options] usertweet [-h] [-u x [x ...]] [-c x] [--created_at] [--description] [--entities] [--id] [--location] [--name] [--pinned_tweet_id] [--profile_image_url] [--protected] [--public_metrics] [--url] [--username] [--verified] [--withheld]
+usage: twiquery [options] usertweet [-h] [-u x [x ...]] [-c x] [--u_created_at] [--u_description] [--u_entities] [--u_id] [--u_location] [--u_name]   
+                                    [--u_pinned_tweet_id] [--u_profile_image_url] [--u_protected] [--u_public_metrics] [--u_url] [--u_username]       
+                                    [--u_verified] [--u_withheld] [--t_attachments] [--t_author_id] [--t_context_annotations] [--t_conversation_id]   
+                                    [--t_created_at] [--t_entities] [--t_geo] [--t_id] [--t_in_reply_to_user_id] [--t_lang] [--t_non_public_metrics]  
+                                    [--t_organic_metrics] [--t_possibly_sensitive] [--t_promoted_metrics] [--t_public_metrics] [--t_referenced_tweets]
+                                    [--t_source] [--t_text] [--t_withheld] [--update-settings] [--use-previous]
 
 optional arguments:
   -h, --help            show this help message and exit
   -u x [x ...], --user x [x ...]
                         Query the tweets for these user(s)
   -c x, --count x       Number of tweets to query for each username
-  --created_at          Remove the created_at field
-  --description         Remove the description field
-  --entities            Remove the entities field
-  --id                  Remove the id field
-  --location            Remove the location field
-  --name                Remove the name field
-  --pinned_tweet_id     Remove the pinned_tweet_id field
-  --profile_image_url   Remove the profile_image_url field
-  --protected           Remove the protected field
-  --public_metrics      Remove the public_metrics field
-  --url                 Remove the url field
-  --username            Remove the username field
-  --verified            Remove the verified field
-  --withheld            Remove the withheld field
+  --u_created_at        (User query) Remove the created_at field
+  --u_description       (User query) Remove the description field
+  --u_entities          (User query) Remove the entities field
+  --u_id                (User query) Remove the id field
+  --u_location          (User query) Remove the location field
+  --u_name              (User query) Remove the name field
+  --u_pinned_tweet_id   (User query) Remove the pinned_tweet_id field
+  --u_profile_image_url
+                        (User query) Remove the profile_image_url field
+  --u_protected         (User query) Remove the protected field
+  --u_public_metrics    (User query) Remove the public_metrics field
+  --u_url               (User query) Remove the url field
+  --u_username          (User query) Remove the username field
+  --u_verified          (User query) Remove the verified field
+  --u_withheld          (User query) Remove the withheld field
+  --t_attachments       (Tweet query) Remove the attachments field
+  --t_author_id         (Tweet query) Remove the author_id field
+  --t_context_annotations
+                        (Tweet query) Remove the context_annotations field
+  --t_conversation_id   (Tweet query) Remove the conversation_id field
+  --t_created_at        (Tweet query) Remove the created_at field
+  --t_entities          (Tweet query) Remove the entities field
+  --t_geo               (Tweet query) Remove the geo field
+  --t_id                (Tweet query) Remove the id field
+  --t_in_reply_to_user_id
+                        (Tweet query) Remove the in_reply_to_user_id field
+  --t_lang              (Tweet query) Remove the lang field
+  --t_non_public_metrics
+                        (Tweet query) Include the non_public_metrics field
+  --t_organic_metrics   (Tweet query) Include the organic_metrics field
+  --t_possibly_sensitive
+                        (Tweet query) Remove the possibly_sensitive field
+  --t_promoted_metrics  (Tweet query) Include the promoted_metrics field
+  --t_public_metrics    (Tweet query) Remove the public_metrics field
+  --t_referenced_tweets
+                        (Tweet query) Remove the referenced_tweets field
+  --t_source            (Tweet query) Remove the source field
+  --t_text              (Tweet query) Remove the text field
+  --t_withheld          (Tweet query) Remove the withheld field
+  --update-settings     Set custom options in config file without executing service
+  --use-previous        Use previously-set custom options in config file
 ```
 
 ```
 $ python cli/twiquery_cli.py streamtweet --help
-usage: twiquery [options] streamtweet [-h] [-r rule] [-t XmYs] [--attachments] [--author_id] [--context_annotations] [--conversation_id] [--created_at] [--entities] [--geo] [--id] [--in_reply_to_user_id] [--lang] [--non_public_metrics] [--organic_metrics] [--possibly_sensitive] [--promoted_metrics] [--public_metrics] [--referenced_tweets] [--source] [--text] [--withheld]    
+usage: twiquery [options] streamtweet [-h] [-r rule [rule ...]] [-t rule [rule ...]] [-d XmYs] [--update-settings] [--use-previous]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -r rule, --rule rule
-  -t XmYs, --timeout XmYs
+  -r rule [rule ...], --rule rule [rule ...]
+                        Rules to filter the Tweet stream
+  -t rule [rule ...], --tag rule [rule ...]
+                        Tags mapping to the filter rules defined in the --rule option
+  -d XmYs, --duration XmYs
                         Duration to stream tweets for, in the format of X minutes and Y seconds. Default -1 for indefinite
-  --attachments         Remove the attachments field
-  --author_id           Remove the author_id field
-  --context_annotations
-                        Remove the context_annotations field
-  --conversation_id     Remove the conversation_id field
-  --created_at          Remove the created_at field
-  --entities            Remove the entities field
-  --geo                 Remove the geo field
-  --id                  Remove the id field
-  --in_reply_to_user_id
-                        Remove the in_reply_to_user_id field
-  --lang                Remove the lang field
-  --non_public_metrics  Include the non_public_metrics field
-  --organic_metrics     Include the organic_metrics field
-  --possibly_sensitive  Remove the possibly_sensitive field
-  --promoted_metrics    Include the promoted_metrics field
-  --public_metrics      Remove the public_metrics field
-  --referenced_tweets   Remove the referenced_tweets field
-  --source              Remove the source field
-  --text                Remove the text field
-  --withheld            Remove the withheld field
+  --update-settings     Set custom options in config file without executing service
+  --use-previous        Use previously-set custom options in config file
 ```
+
+## How to Run the Code
+##### Run Locally
+Step 1: Update the `Bearer_Token` in `.env.stub` to your Twitter Developer account bearer token <br>
+Step 2: Rename `.env.stub` to `.env` <br>
+Step 3: Install dependencies with `pip install -r requirements.txt` <br>
+Step 4: Run `python main.py` <br>
 
 ## Design Considerations & Implementations
 

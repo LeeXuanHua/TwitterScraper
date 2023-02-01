@@ -32,7 +32,7 @@ class TwitterUser:
         4. Handles all errors from this object
         '''
         logger_file_handler = RotatingFileHandler(
-            config["DEFAULT"]["user_tweet_log_file"],
+            config["FILEPATHS"]["user_tweet_log_file"],
             mode='a',
             maxBytes=1024 * 1024,
             backupCount=100,
@@ -133,9 +133,12 @@ class TwitterUser:
         return {"user.fields": ",".join(userfields)}
 
     def create_users_url(self) -> str:
-        with open(self.config["DEFAULT"]["usernames_file"]) as f:
-            usernames = f.read().splitlines()
-        return self.config["LINKS"]["twitter_user_link"].format(",".join(usernames))
+        # Deprecated - usernames are now stored in config.ini, not in a text file
+        # with open(self.config["FILEPATHS"]["usernames_file"]) as f:
+        #     usernames = f.read().splitlines()
+        # usernames = ast.literal_eval(self.config["USERTWEET"]["username"])      # Avoid eval() for security reasons; do not require ast.literal since data are stored in list format already
+        usernames = self.config["USERTWEET"]["username"]
+        return self.config["LINKS"]["twitter_user_link"].format(",".join(usernames)) 
 
 
     # Handles the API URLs and parameters for tweets
@@ -165,7 +168,7 @@ if __name__ == "__main__":
 
     # Initialize services
     logger_file_handler = RotatingFileHandler(
-        config["DEFAULT"]["user_tweet_log_file"],
+        config["FILEPATHS"]["user_tweet_log_file"],
         mode='a',
         maxBytes=1024 * 1024,
         backupCount=100,
