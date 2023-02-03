@@ -12,7 +12,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/LeeXuanHua/TwitterScraper)](https://github.com/LeeXuanHua/TwitterScraper/issues)
 [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/LeeXuanHua/TwitterScraper)](https://github.com/LeeXuanHua/TwitterScraper/pulls)
 
-[![Twitter Streaming](https://github.com/LeeXuanHua/TwitterScraper/actions/workflows/actions.yml/badge.svg?branch=main&event=)](https://github.com/LeeXuanHua/TwitterScraper/actions)
+[![Tweet Stream](https://github.com/LeeXuanHua/TwitterScraper/actions/workflows/actions.yml/badge.svg?branch=main&event=)](https://github.com/LeeXuanHua/TwitterScraper/actions)
 <!-- ![Build Status](https://img.shields.io/circleci/project/github/LeeXuanHua/TwitterScraper/main)
 ![Daily Tests](https://img.shields.io/circleci/project/github/LeeXuanHua/daily-tests?label=service%20tests)
 ![Coverage](https://img.shields.io/coveralls/github/LeeXuanHua/TwitterScraper) -->
@@ -159,11 +159,17 @@ optional arguments:
 ```
 
 ## How to Run the Code
-##### Run Locally
+#### Run Locally via Python / Terminal
 Step 1: Update the `Bearer_Token` in `.env.stub` to your Twitter Developer account bearer token <br>
 Step 2: Rename `.env.stub` to `.env` <br>
 Step 3: Install dependencies with `pip install -r requirements.txt` <br>
-Step 4: Run `python main.py` <br>
+Step 4: Run `python main.py` for default CLI settings <br>
+
+#### Run Locally via Docker
+<b>Work in progress</b>
+
+#### Run Remotely
+<b>Work in progress</b>
 
 ## Design Considerations & Implementations
 
