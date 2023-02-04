@@ -83,10 +83,10 @@ class TwiQueryCLI:
             "--count",
             action="store",
             metavar="x",
-            nargs=1,                                        # 1 number
+            # nargs=1,                                        # 1 number; removed since nargs=1 causes value to be a list
             type=int,
             default=5,
-            help="Number of tweets to query for each username",
+            help="Number of tweets to query for each username (Minimum 5, Maximum 100)",
         )
 
 
@@ -160,7 +160,7 @@ class TwiQueryCLI:
             "--duration",
             action="store",
             metavar="XmYs",                                 # specify format
-            nargs=1,                                        # 1 duration
+            # nargs=1,                                        # 1 duration; removed since nargs=1 causes value to be a list
             type=str,
             default=-1,
             help="Duration to stream tweets for, in the format of X minutes and Y seconds. Default -1 for indefinite",

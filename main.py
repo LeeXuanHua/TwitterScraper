@@ -57,7 +57,9 @@ if __name__ == "__main__":
     args, unknown_args = arg_parser.parse_known_args()
 
     # Check for errorneous input
-    assert (len(args.rule) == len(args.tag)), "Number of rules and tags do not match!"
+    # ERROR:User Tweet Failed - Request returned an error: 400 {"errors":[{"parameters":{"max_results":["3"]},"message":"The `max_results` query parameter value [3] is not between 5 and 100"}],"title":"Invalid Request","detail":"One or more parameters to your request was invalid.","type":"https://api.twitter.com/2/problems/invalid-request"}
+    assert (5 <= args.count <= 100), main_logger.error("Count must be between 5 and 100!")
+    assert (len(args.rule) == len(args.tag)), main_logger.error("Number of rules and tags do not match!")
 
     # Save args to config
     if args.subcommand == None:
@@ -149,10 +151,14 @@ if __name__ == "__main__":
         main_logger.info("Program exiting ...")
         sys.exit(0)
     
+    # Reread the config file
+    config = RawConfigParser()
+    config.read("config.ini")
+    
     # Based on config file, initialize services per thread
     thread_list: List[threading.Thread] = []
     
-    if config["API"]["user_tweet"] == True:
+    if config["API"]["user_tweet"] == "True":
         thread_list.append(threading.Thread(
             target=TwitterUser.create_thread, 
             name="UserTweetThread",
@@ -163,7 +169,7 @@ if __name__ == "__main__":
                 "formatter": formatter
                 }))
     
-    if config["API"]["stream_tweet"] == True:
+    if config["API"]["stream_tweet"] == "True":
         thread_list.append(threading.Thread(
             target=TwitterStream.create_thread, 
             name="StreamTweetThread",

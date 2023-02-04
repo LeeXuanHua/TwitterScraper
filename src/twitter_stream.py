@@ -2,6 +2,7 @@ import httpx
 import asyncio
 import os
 import json
+import ast
 import time
 import logging
 from logging.handlers import RotatingFileHandler
@@ -44,6 +45,8 @@ class TwitterStream:
         stream_logger.setLevel(logging.INFO)
         stream_logger.addHandler(logger_file_handler)
 
+        interval = 5
+
         while True:
             try:
                 twitter_stream = TwitterStream(bearer_token, config, stream_logger)
@@ -52,7 +55,7 @@ class TwitterStream:
 
             except httpx.RequestError as e:   # Handle request errors
                 logger.error(f"Stream Tweet Failed - {e}")
-                logger.error(f"Retrying Stream Tweet")
+                logger.error(f"Retrying Stream Tweet in {interval} seconds ...")
             
             except httpx.HTTPStatusError as e:   # Handle response errors
                 # If rate limit has been reached, wait until reset time
@@ -60,11 +63,13 @@ class TwitterStream:
                     logger.error(f"Rate limit reached, waiting until reset time: {e.response.headers['x-rate-limit-reset']}")
                     time.sleep(int(e.response.headers["x-rate-limit-reset"]) - time.time())
                 logger.error(f"Stream Tweet Failed - {e}")
-                logger.error(f"Retrying Stream Tweet")
+                logger.error(f"Retrying Stream Tweet in {interval} seconds ...")
 
             except Exception as e:
                 logger.error(f"Stream Tweet Failed - {e}")
                 break
+
+            time.sleep(interval)
 
     def __init__(self, bearer_token: str, config: RawConfigParser, logger: logging.Logger):
         self.bearer_token = bearer_token
@@ -130,9 +135,9 @@ class TwitterStream:
         # Deprecated - Rules are no longer stored under STREAMRULE section
         # for option in self.config.options("STREAMRULE", no_defaults=True):
         #     rules.append({"value": self.config.get('STREAMRULE', option)})
-        # config_rule = ast.literal_eval(self.config["STREAMTWEET"]["rule"])    # do not require ast.literal since data are stored in list format already
-        # config_tag = ast.literal_eval(self.config["STREAMTWEET"]["tag"])      # do not require ast.literal since data are stored in list format already
-        for rule, tag in zip(self.config["STREAMTWEET"]["rule"], self.config["STREAMTWEET"]["tag"]):
+        config_rule = ast.literal_eval(self.config["STREAMTWEET"]["rule"])    # require ast.literal to process data in config.ini
+        config_tag = ast.literal_eval(self.config["STREAMTWEET"]["tag"])      # require ast.literal to process data in config.ini
+        for rule, tag in zip(config_rule, config_tag):
             rules.append({"value": rule, "tag": tag})
 
         payload = {"add": rules}
@@ -148,6 +153,12 @@ class TwitterStream:
         self.logger.info(f"Set Rules: {json.dumps(response.json(), sort_keys=True)}")
 
 
+    async def process_chunk(self, response: httpx.Response) -> None:
+        async for response_line in response.aiter_text():
+            if response_line and response_line != "\r\n" and response_line != "\n":
+                json_response = json.loads(response_line)
+                self.logger.info(json.dumps(json_response, sort_keys=True))
+
     async def get_stream(self, set) -> None:
         session = httpx.AsyncClient(timeout=30)
 
@@ -157,10 +168,18 @@ class TwitterStream:
                     request=response.request,
                     response=response)
 
-            async for response_line in response.aiter_text():
-                if response_line and response_line != "\r\n" and response_line != "\n":
-                    json_response = json.loads(response_line)
-                    self.logger.info(json.dumps(json_response, sort_keys=True))
+            timeout = self.config.getint("STREAMTWEET", "duration")
+
+            # If timeout is set to -1, stream will run indefinitely. Otherwise, stream will run for the specified duration
+            if timeout == -1:
+                await self.process_chunk(response)
+            else:
+                try:
+                    await asyncio.wait_for(self.process_chunk(response), timeout=timeout)
+                except asyncio.TimeoutError:
+                    self.logger.info(f"Stream Tweet: Stream timer has reached {timeout} seconds")
+                except Exception as e:
+                    self.logger.error(f"Stream Tweet Failed - {e}")
 
         await session.aclose()
 

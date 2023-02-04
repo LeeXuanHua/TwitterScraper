@@ -2,6 +2,8 @@ import httpx
 import asyncio
 import os
 import json
+import ast
+import time
 import logging
 from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
@@ -46,6 +48,8 @@ class TwitterUser:
         user_logger.setLevel(logging.INFO)
         user_logger.addHandler(logger_file_handler)
 
+        interval = 5
+
         while True:
             try:
                 twitter_user = TwitterUser(bearer_token, config, user_logger)
@@ -54,15 +58,17 @@ class TwitterUser:
             
             except httpx.RequestError as e:   # Handle request errors
                 logger.error(f"Stream Tweet Failed - {e}")
-                logger.error(f"Retrying Stream Tweet")
+                logger.error(f"Retrying User Tweet in {interval} seconds ...")
             
             except httpx.HTTPStatusError as e:   # Handle response errors
                 logger.error(f"User Tweet Failed - {e}")
-                logger.error(f"Retrying User Tweet")
+                logger.error(f"Retrying User Tweet in {interval} seconds ...")
 
             except Exception as e:
                 logger.error(f"User Tweet Failed - {e}")
                 break
+
+            time.sleep(interval)
 
     def __init__(self, bearer_token: str, config: RawConfigParser, logger: logging.Logger):
         self.bearer_token = bearer_token
@@ -136,8 +142,7 @@ class TwitterUser:
         # Deprecated - usernames are now stored in config.ini, not in a text file
         # with open(self.config["FILEPATHS"]["usernames_file"]) as f:
         #     usernames = f.read().splitlines()
-        # usernames = ast.literal_eval(self.config["USERTWEET"]["username"])      # Avoid eval() for security reasons; do not require ast.literal since data are stored in list format already
-        usernames = self.config["USERTWEET"]["username"]
+        usernames = ast.literal_eval(self.config["USERTWEET"]["username"])      # Avoid eval() for security reasons; require ast.literal to process data in config.ini
         return self.config["LINKS"]["twitter_user_link"].format(",".join(usernames)) 
 
 
@@ -145,7 +150,8 @@ class TwitterUser:
     def get_tweets_params(self) -> dict:
         tweetfields_section = self.config["TWEETFIELDS"]
         tweetsfields = [key for key in tweetfields_section if tweetfields_section[key] == "True"]
-        return {"tweet.fields": ",".join(tweetsfields), "max_results":5}
+        tweetcount = ast.literal_eval(self.config["USERTWEET"]["count"])
+        return {"tweet.fields": ",".join(tweetsfields), "max_results":tweetcount}
 
     def create_tweets_url(self, user_id) -> str:
         return self.config["LINKS"]["twitter_user_tweets_link"].format(user_id)
@@ -185,7 +191,7 @@ if __name__ == "__main__":
 
         except (httpx.ProtocolError, httpx.HTTPStatusError) as e:
             logger.error(f"User Tweet Failed - {e}")
-            logger.info(f"Retrying User Tweet")
+            logger.info(f"Retrying User Tweet sassadasdas")
 
         except Exception as e:
             logger.error(f"User Tweet Failed - {e}")

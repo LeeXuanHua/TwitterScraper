@@ -234,6 +234,11 @@ Step 4: Run `python main.py` for default CLI settings <br>
     6. What are the appropriate metavar and help descriptions
 - Note that when reading from config.ini, we do not require `ast.literal_eval()` as the format can be identified and is unchanged
 
+### Limiting Async Tweet Stream Duration
+- Approach 1: Use webhook - Failed (httpx.stream() context block is called only once, therefore webhook executes only once)
+- Approach 2: Callable within the stream context block - Partial success (exits stream only when a tweet response is received)
+- Approach 3: Use `async.wait_for()` - Success (refactored code for chunk processing into async coroutine)
+
 ## Research
 ### Web Servers vs Web Frameworks
 - Web Servers:
